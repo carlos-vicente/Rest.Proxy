@@ -2,17 +2,12 @@
 using FakeItEasy;
 using FluentAssertions;
 using NUnit.Framework;
+using Rest.Proxy.UnitTests.Support;
 
 namespace Rest.Proxy.UnitTests
 {
-    [TestFixture]
     public class ProxyFactoryTests : BaseAutoFakerTestFixture
     {
-        public interface ITest
-        {
-            void TestOperation();
-        }
-
         [Test]
         public void CreateProxy_ThrowsInvalidOperationException_WhenTypeIsNotInterface()
         {
@@ -34,8 +29,7 @@ namespace Rest.Proxy.UnitTests
             var fakeFunc = A.Fake<Func<IRestProxy, ITest>>();
             var expectedProxy = Fake.Resolve<ITest>();
 
-            A.CallTo(
-                () => fakeFunc(Fake.Resolve<IRestProxy>()))
+            A.CallTo(() => fakeFunc(Fake.Resolve<IRestProxy>()))
                 .Returns(expectedProxy);
 
             Fake.Provide(fakeFunc);

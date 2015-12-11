@@ -4,12 +4,12 @@ namespace Rest.Proxy
 {
     public interface IRestProxy : IInterceptor
     {
-        void Get();
+        object Get(object request);
 
-        void Post();
+        object Post(object request);
 
-        void Put();
+        object Put(object request);
 
-        void Delete();
+        object Delete(object request);
     }
 }
