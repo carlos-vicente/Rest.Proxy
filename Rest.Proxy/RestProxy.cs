@@ -1,86 +1,113 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Castle.Core.Interceptor;
-using Rest.Proxy.Attributes;
+using System.Text;
 using RestSharp;
 
 namespace Rest.Proxy
 {
     public class RestProxy : IRestProxy
     {
-        private const string InvalidOperationFormat = "The method {0} has invalid usage of MethodRouteAttribute";
-
-        public void Intercept(IInvocation invocation)
+        private class UrlSegment
         {
-            var attributes = invocation
-                .Method
-                .GetCustomAttributes(typeof (MethodRouteAttribute))
-                .ToList();
+            public string Name { get; set; }
 
-            if (!attributes.Any() || attributes.Count > 1)
+            public string Value { get; set; }
+        }
+
+        private readonly IRestClient _restClient;
+
+        public RestProxy(IRestClient restClient)
+        {
+            _restClient = restClient;
+        }
+
+        public object Get(string baseUrl, string resourceUrl, object request)
+        {
+            // replace everything in URL template
+            _restClient.BaseUrl = new Uri(baseUrl);
+
+            // create a request for the URL
+            var segments = ExtractSegments(resourceUrl, request);
+
+            var finalResourceUrl = new StringBuilder(resourceUrl).ToString();
+
+            foreach (var urlSegment in segments)
             {
-                throw new InvalidOperationException(
-                    string.Format(
-                        InvalidOperationFormat,
-                        invocation.Method.Name));
+                finalResourceUrl = finalResourceUrl
+                    .Replace(
+                        string.Format("{{{0}}}", urlSegment.Name),
+                        urlSegment.Value);
             }
 
-            var methodRoute = attributes.Single() as MethodRouteAttribute;
+            var restRequest = new RestRequest(finalResourceUrl, Method.GET);
 
-            object response = null;
+            var response = _restClient.Execute(restRequest);
 
-            switch (methodRoute.Method)
+            return response.Content;
+        }
+
+        public object Post(string baseUrl, string resourceUrl, object request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object Put(string baseUrl, string resourceUrl, object request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object Delete(string baseUrl, string resourceUrl, object request)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static IEnumerable<UrlSegment> ExtractSegments(string resourceUrl, object request)
+        {
+            var segments = new List<UrlSegment>();
+
+            var lastIndex = 0;
+            var openIndex = 0;
+            var closeIndex = 0;
+
+            do
             {
-                case Method.GET:
-                    response = Get(invocation
-                        .Arguments
-                        .SingleOrDefault());
-                    break;
+                openIndex = resourceUrl.IndexOf("{", lastIndex);
 
-                case Method.POST:
-                    response = Post(invocation
-                        .Arguments
-                        .SingleOrDefault());
-                    break;
+                if (openIndex != -1)
+                {
+                    closeIndex = resourceUrl.IndexOf("}", lastIndex);
 
-                case Method.PUT:
-                    response = Put(invocation
-                        .Arguments
-                        .SingleOrDefault());
-                    break;
+                    var segmentName = resourceUrl
+                        .Substring(openIndex + 1, (closeIndex - openIndex) - 1);
 
-                case Method.DELETE:
-                    response = Delete(invocation
-                        .Arguments
-                        .SingleOrDefault());
-                    break;
+                    var segmentValue = GetPropertyValue(request, segmentName);
 
-                default:
-                    throw new ArgumentOutOfRangeException();
+                    if(segmentValue != null)
+                        segments.Add(new UrlSegment
+                        {
+                            Name = segmentName,
+                            Value = segmentValue
+                        });
+
+                    lastIndex = openIndex + 1;
+                }
             }
+            while (openIndex != -1);
 
-            invocation.ReturnValue = response;
+            return segments;
         }
 
-        public object Get(object request)
+        private static string GetPropertyValue(object request, string propertyName)
         {
-            throw new NotImplementedException();
-        }
+            var properties = request
+                .GetType()
+                .GetProperties();
 
-        public object Post(object request)
-        {
-            throw new NotImplementedException();
-        }
+            var property = properties
+                .SingleOrDefault(p => p.Name.Equals(propertyName));
 
-        public object Put(object request)
-        {
-            throw new NotImplementedException();
-        }
-
-        public object Delete(object request)
-        {
-            throw new NotImplementedException();
+            return property?.GetValue(request)?.ToString();
         }
     }
 }

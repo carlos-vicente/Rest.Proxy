@@ -72,6 +72,7 @@
     <Compile Include="IRestProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyFactory.cs" />
+    <Compile Include="ProxyInterceptor.cs" />
     <Compile Include="RestProxy.cs" />
     <Compile Include="Attributes\MethodRouteAttribute.cs" />
     <Compile Include="Attributes\ServiceRouteAttribute.cs" />

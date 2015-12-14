@@ -1,15 +1,13 @@
-﻿using Castle.Core.Interceptor;
-
-namespace Rest.Proxy
+﻿namespace Rest.Proxy
 {
-    public interface IRestProxy : IInterceptor
+    public interface IRestProxy
     {
-        object Get(object request);
+        object Get(string baseUrl, string resourceUrl, object request);
 
-        object Post(object request);
+        object Post(string baseUrl, string resourceUrl, object request);
 
-        object Put(object request);
+        object Put(string baseUrl, string resourceUrl, object request);
 
-        object Delete(object request);
+        object Delete(string baseUrl, string resourceUrl, object request);
     }
 }
