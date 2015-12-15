@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Castle.Core;
+using CV.Common.Serialization;
 using RestSharp;
 
 namespace Rest.Proxy
@@ -16,48 +18,64 @@ namespace Rest.Proxy
         }
 
         private readonly IRestClient _restClient;
+        private readonly ISerializer _serializer;
 
-        public RestProxy(IRestClient restClient)
+        public RestProxy(
+            IRestClient restClient,
+            ISerializer serializer)
         {
             _restClient = restClient;
+            _serializer = serializer;
         }
 
-        public object Get(string baseUrl, string resourceUrl, object request)
+        public object Get(string baseUrl, string resourceUrl, object request, Type responseType)
         {
+            if(string.IsNullOrWhiteSpace(baseUrl))
+                throw new ArgumentNullException(nameof(baseUrl));
+
+            if (string.IsNullOrWhiteSpace(resourceUrl))
+                throw new ArgumentNullException(nameof(resourceUrl));
+
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
+            if (responseType == null)
+                throw new ArgumentNullException(nameof(responseType));
+
             // replace everything in URL template
             _restClient.BaseUrl = new Uri(baseUrl);
 
             // create a request for the URL
             var segments = ExtractSegments(resourceUrl, request);
 
-            var finalResourceUrl = new StringBuilder(resourceUrl).ToString();
+            var finalResourceUrl = new StringBuilder(resourceUrl)
+                .ToString();
 
-            foreach (var urlSegment in segments)
-            {
-                finalResourceUrl = finalResourceUrl
-                    .Replace(
-                        string.Format("{{{0}}}", urlSegment.Name),
-                        urlSegment.Value);
-            }
+            segments
+                .ForEach(segment =>
+                    finalResourceUrl = finalResourceUrl
+                        .Replace($"{{{segment.Name}}}", segment.Value));
 
             var restRequest = new RestRequest(finalResourceUrl, Method.GET);
 
+            // execute the request
             var response = _restClient.Execute(restRequest);
 
-            return response.Content;
+            // deserialize the response body to return
+            return _serializer.Deserialize(responseType, response.Content);
         }
 
-        public object Post(string baseUrl, string resourceUrl, object request)
+        public void Post(string baseUrl, string resourceUrl, object request)
         {
             throw new NotImplementedException();
         }
 
-        public object Put(string baseUrl, string resourceUrl, object request)
+        public void Put(string baseUrl, string resourceUrl, object request)
         {
             throw new NotImplementedException();
         }
 
-        public object Delete(string baseUrl, string resourceUrl, object request)
+        public void Delete(string baseUrl, string resourceUrl, object request)
         {
             throw new NotImplementedException();
         }

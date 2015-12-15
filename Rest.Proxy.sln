@@ -3,9 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rest.Proxy", "Rest.Proxy\Rest.Proxy.csproj", "{15B8E63F-A427-4BB3-B542-79C7B2EFBD4B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A3CB414B-4C99-47B4-9066-8593A4D5A47A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rest.Proxy.UnitTests", "Rest.Proxy.UnitTests\Rest.Proxy.UnitTests.csproj", "{5C097DD2-EC6F-4519-BA40-18C7B728207F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0F6FBE47-20E7-4F6D-A4DF-0781DEC2B81C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{F43DE82C-5B47-428B-A5EF-19EF5EB6B30F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CV.Common.Serialization", "src\CV.Common.Serialization\CV.Common.Serialization.csproj", "{F1C7DCCF-43DF-42D8-9EF3-0B4CCAA04ADD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rest.Proxy", "src\Rest.Proxy\Rest.Proxy.csproj", "{15B8E63F-A427-4BB3-B542-79C7B2EFBD4B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rest.Proxy.UnitTests", "tests\Rest.Proxy.UnitTests\Rest.Proxy.UnitTests.csproj", "{5C097DD2-EC6F-4519-BA40-18C7B728207F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CV.Common.Serialization.Json", "src\CV.Common.Serialization.Json\CV.Common.Serialization.Json.csproj", "{2C09087B-5E24-4240-AB17-5DBD76418CEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CV.Common.Serialization.Json.UnitTests", "tests\CV.Common.Serialization.Json.UnitTests\CV.Common.Serialization.Json.UnitTests.csproj", "{38C32280-0AFF-4C7A-8999-4669972EC1A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +25,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F1C7DCCF-43DF-42D8-9EF3-0B4CCAA04ADD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1C7DCCF-43DF-42D8-9EF3-0B4CCAA04ADD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1C7DCCF-43DF-42D8-9EF3-0B4CCAA04ADD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1C7DCCF-43DF-42D8-9EF3-0B4CCAA04ADD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{15B8E63F-A427-4BB3-B542-79C7B2EFBD4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{15B8E63F-A427-4BB3-B542-79C7B2EFBD4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15B8E63F-A427-4BB3-B542-79C7B2EFBD4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -21,8 +37,23 @@ Global
 		{5C097DD2-EC6F-4519-BA40-18C7B728207F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C097DD2-EC6F-4519-BA40-18C7B728207F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C097DD2-EC6F-4519-BA40-18C7B728207F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C09087B-5E24-4240-AB17-5DBD76418CEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C09087B-5E24-4240-AB17-5DBD76418CEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C09087B-5E24-4240-AB17-5DBD76418CEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C09087B-5E24-4240-AB17-5DBD76418CEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38C32280-0AFF-4C7A-8999-4669972EC1A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38C32280-0AFF-4C7A-8999-4669972EC1A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38C32280-0AFF-4C7A-8999-4669972EC1A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38C32280-0AFF-4C7A-8999-4669972EC1A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F1C7DCCF-43DF-42D8-9EF3-0B4CCAA04ADD} = {A3CB414B-4C99-47B4-9066-8593A4D5A47A}
+		{15B8E63F-A427-4BB3-B542-79C7B2EFBD4B} = {A3CB414B-4C99-47B4-9066-8593A4D5A47A}
+		{5C097DD2-EC6F-4519-BA40-18C7B728207F} = {0F6FBE47-20E7-4F6D-A4DF-0781DEC2B81C}
+		{2C09087B-5E24-4240-AB17-5DBD76418CEB} = {A3CB414B-4C99-47B4-9066-8593A4D5A47A}
+		{38C32280-0AFF-4C7A-8999-4669972EC1A0} = {0F6FBE47-20E7-4F6D-A4DF-0781DEC2B81C}
 	EndGlobalSection
 EndGlobal

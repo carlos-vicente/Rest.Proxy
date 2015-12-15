@@ -57,47 +57,34 @@ namespace Rest.Proxy
                 .Arguments
                 .SingleOrDefault();
 
-            object response = null;
+            var baseUrl = serviceRoute.BaseUrl;
+            var resourceUrl = methodRoute.Template;
 
             switch (methodRoute.Method)
             {
                 case Method.GET:
-                    response = _restProxy
-                        .Get(
-                            serviceRoute.BaseUrl,
-                            methodRoute.Template,
-                            request);
+                    invocation.ReturnValue = _restProxy
+                        .Get(baseUrl, resourceUrl, request, invocation.Method.ReturnType);
                     break;
 
                 case Method.POST:
-                    response = _restProxy
-                        .Post(
-                            serviceRoute.BaseUrl,
-                            methodRoute.Template,
-                            request);
+                    _restProxy
+                        .Post(baseUrl, resourceUrl, request);
                     break;
 
                 case Method.PUT:
-                    response = _restProxy
-                        .Put(
-                            serviceRoute.BaseUrl,
-                            methodRoute.Template,
-                            request);
+                    _restProxy
+                        .Put(baseUrl, resourceUrl, request);
                     break;
 
                 case Method.DELETE:
-                    response = _restProxy
-                        .Delete(
-                            serviceRoute.BaseUrl,
-                            methodRoute.Template,
-                            request);
+                    _restProxy
+                        .Delete(baseUrl, resourceUrl, request);
                     break;
 
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
-            invocation.ReturnValue = response;
         }
     }
 }
