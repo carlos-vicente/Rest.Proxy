@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using Castle.Core;
 using CV.Common.Serialization;
@@ -60,6 +61,19 @@ namespace Rest.Proxy
 
             // execute the request
             var response = _restClient.Execute(restRequest);
+
+            if (response.ErrorException != null)
+            {
+                throw new HttpException(
+                    $"Server returned error: {response.ErrorMessage}",
+                    response.ErrorException);
+            }
+
+            // TODO: just OK or all the 2xx family????
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new HttpException($"Server returned error: {response.StatusDescription}");
+            }
 
             // deserialize the response body to return
             return _serializer.Deserialize(responseType, response.Content);
