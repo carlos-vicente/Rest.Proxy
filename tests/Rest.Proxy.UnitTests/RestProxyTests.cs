@@ -310,7 +310,7 @@ namespace Rest.Proxy.UnitTests
                 .Returns(restRequest);
 
             A.CallTo(() => serializer
-                .Serialize(request))
+                .Serialize(request as object))
                 .Returns(requestSerialized);
 
             A.CallTo(() => restClient
@@ -326,7 +326,7 @@ namespace Rest.Proxy.UnitTests
             var sut = Fake.Resolve<RestProxy>();
 
             // act
-            sut.Put(baseUrl, resourceUrl, request);
+            sut.Post(baseUrl, resourceUrl, request);
 
             // assert
             A.CallTo(() => restRequest

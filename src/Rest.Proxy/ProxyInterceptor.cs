@@ -2,8 +2,8 @@
 using System.Linq;
 using Castle.Core.Interceptor;
 using Rest.Proxy.Attributes;
-using RestSharp;
 using System.Reflection;
+using Rest.Proxy.Settings;
 
 namespace Rest.Proxy
 {
@@ -13,16 +13,21 @@ namespace Rest.Proxy
         private const string InvalidOperationFormat = "The method {0} has invalid usage of MethodRouteAttribute";
 
         private readonly IRestProxy _restProxy;
+        private readonly ISettings _settings;
 
-        public ProxyInterceptor(IRestProxy restProxy)
+        public ProxyInterceptor(
+            IRestProxy restProxy,
+            ISettings settings)
         {
             _restProxy = restProxy;
+            _settings = settings;
         }
 
         public void Intercept(IInvocation invocation)
         {
             var typeAttibutes = invocation
-                .TargetType
+                .Method
+                .DeclaringType
                 .GetCustomAttributes(typeof (ServiceRouteAttribute))
                 .ToList();
 
@@ -57,27 +62,28 @@ namespace Rest.Proxy
                 .Arguments
                 .SingleOrDefault();
 
-            var baseUrl = serviceRoute.BaseUrl;
+
+            var baseUrl = _settings.GetBaseUrl(serviceRoute.SettingBaseUrlName);
             var resourceUrl = methodRoute.Template;
 
             switch (methodRoute.Method)
             {
-                case Method.GET:
+                case HttpMethod.Get:
                     invocation.ReturnValue = _restProxy
                         .Get(baseUrl, resourceUrl, request, invocation.Method.ReturnType);
                     break;
 
-                case Method.POST:
+                case HttpMethod.Post:
                     _restProxy
                         .Post(baseUrl, resourceUrl, request);
                     break;
 
-                case Method.PUT:
+                case HttpMethod.Put:
                     _restProxy
                         .Put(baseUrl, resourceUrl, request);
                     break;
 
-                case Method.DELETE:
+                case HttpMethod.Delete:
                     _restProxy
                         .Delete(baseUrl, resourceUrl, request);
                     break;

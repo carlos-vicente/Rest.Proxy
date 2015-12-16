@@ -1,26 +1,25 @@
 ﻿using Rest.Proxy.Attributes;
 using Rest.Proxy.UnitTests.Support.Requests;
 using Rest.Proxy.UnitTests.Support.Response;
-using RestSharp;
 
 namespace Rest.Proxy.UnitTests.Support
 {
-    [ServiceRoute(BaseUrl = "http://www.testserver.com/testservice")]
+    [ServiceRoute(SettingBaseUrlName = "SomeUrlSetting")]
     public interface ITest
     {
-        [MethodRoute(Method = Method.GET, Template = "/resource/{Id}")]
+        [MethodRoute(Method = HttpMethod.Get, Template = "/resource/{Id}")]
         GetSingleResponse TestGet(GetSingleRequest request);
 
-        [MethodRoute(Method = Method.GET, Template = "/resources")]
+        [MethodRoute(Method = HttpMethod.Get, Template = "/resources")]
         GetAllResponse TestGetAll(GetAllRequest request);
 
-        [MethodRoute(Method = Method.POST, Template = "/resources")]
+        [MethodRoute(Method = HttpMethod.Post, Template = "/resources")]
         void TestPost(PostRequest request);
 
-        [MethodRoute(Method = Method.PUT, Template = "/resource/{Id}")]
+        [MethodRoute(Method = HttpMethod.Put, Template = "/resource/{Id}")]
         void TestPut(PutRequest request);
 
-        [MethodRoute(Method = Method.DELETE, Template = "/resource/{Id}")]
+        [MethodRoute(Method = HttpMethod.Delete, Template = "/resource/{Id}")]
         void TestDelete(DeleteRequest request);
     }
 }
