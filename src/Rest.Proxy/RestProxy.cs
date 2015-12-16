@@ -20,13 +20,16 @@ namespace Rest.Proxy
 
         private readonly IRestClient _restClient;
         private readonly ISerializer _serializer;
+        private readonly Func<string, Method, IRestRequest> _requestFactoryFunc;
 
         public RestProxy(
             IRestClient restClient,
-            ISerializer serializer)
+            ISerializer serializer,
+            Func<string, Method, IRestRequest> requestFactoryFunc)
         {
             _restClient = restClient;
             _serializer = serializer;
+            _requestFactoryFunc = requestFactoryFunc;
         }
 
         public object Get(string baseUrl, string resourceUrl, object request, Type responseType)
@@ -47,33 +50,11 @@ namespace Rest.Proxy
             _restClient.BaseUrl = new Uri(baseUrl);
 
             // create a request for the URL
-            var segments = ExtractSegments(resourceUrl, request);
-
-            var finalResourceUrl = new StringBuilder(resourceUrl)
-                .ToString();
-
-            segments
-                .ForEach(segment =>
-                    finalResourceUrl = finalResourceUrl
-                        .Replace($"{{{segment.Name}}}", segment.Value));
-
-            var restRequest = new RestRequest(finalResourceUrl, Method.GET);
+            var restRequest = GetRestRequest(resourceUrl, request, Method.GET);
 
             // execute the request
             var response = _restClient.Execute(restRequest);
-
-            if (response.ErrorException != null)
-            {
-                throw new HttpException(
-                    $"Server returned error: {response.ErrorMessage}",
-                    response.ErrorException);
-            }
-
-            // TODO: just OK or all the 2xx family????
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                throw new HttpException($"Server returned error: {response.StatusDescription}");
-            }
+            ValidateResponse(response);
 
             // deserialize the response body to return
             return _serializer.Deserialize(responseType, response.Content);
@@ -81,7 +62,26 @@ namespace Rest.Proxy
 
         public void Post(string baseUrl, string resourceUrl, object request)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(baseUrl))
+                throw new ArgumentNullException(nameof(baseUrl));
+
+            if (string.IsNullOrWhiteSpace(resourceUrl))
+                throw new ArgumentNullException(nameof(resourceUrl));
+
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
+            // replace everything in URL template
+            _restClient.BaseUrl = new Uri(baseUrl);
+
+            // create a request for the URL
+            var restRequest = GetRestRequest(resourceUrl, request, Method.POST);
+            var serializedRequest = _serializer.Serialize(request);
+            restRequest.AddBody(serializedRequest);
+
+            // execute the request
+            var response = _restClient.Execute(restRequest);
+            ValidateResponse(response);
         }
 
         public void Put(string baseUrl, string resourceUrl, object request)
@@ -92,6 +92,21 @@ namespace Rest.Proxy
         public void Delete(string baseUrl, string resourceUrl, object request)
         {
             throw new NotImplementedException();
+        }
+
+        private IRestRequest GetRestRequest(string resourceUrl, object request, Method method)
+        {
+            var segments = ExtractSegments(resourceUrl, request);
+
+            var finalResourceUrl = new StringBuilder(resourceUrl)
+                .ToString();
+
+            segments
+                .ForEach(segment =>
+                    finalResourceUrl = finalResourceUrl
+                        .Replace($"{{{segment.Name}}}", segment.Value));
+
+            return _requestFactoryFunc(finalResourceUrl, method);
         }
 
         private static IEnumerable<UrlSegment> ExtractSegments(string resourceUrl, object request)
@@ -140,6 +155,22 @@ namespace Rest.Proxy
                 .SingleOrDefault(p => p.Name.Equals(propertyName));
 
             return property?.GetValue(request)?.ToString();
+        }
+
+        private static void ValidateResponse(IRestResponse response)
+        {
+            if (response.ErrorException != null)
+            {
+                throw new HttpException(
+                    $"Server returned error: {response.ErrorMessage}",
+                    response.ErrorException);
+            }
+
+            // TODO: just OK or all the 2xx family????
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new HttpException($"Server returned error: {response.StatusDescription}");
+            }
         }
     }
 }
