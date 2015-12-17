@@ -14,10 +14,10 @@ namespace Rest.Proxy.UnitTests.Support
         GetAllResponse TestGetAll(GetAllRequest request);
 
         [MethodRoute(Method = HttpMethod.Post, Template = "/resources")]
-        void TestPost(PostRequest request);
+        PostResponse TestPost(PostRequest request);
 
         [MethodRoute(Method = HttpMethod.Put, Template = "/resource/{Id}")]
-        void TestPut(PutRequest request);
+        PutResponse TestPut(PutRequest request);
 
         [MethodRoute(Method = HttpMethod.Delete, Template = "/resource/{Id}")]
         void TestDelete(DeleteRequest request);

@@ -28,7 +28,7 @@ namespace Rest.Proxy
             var typeAttibutes = invocation
                 .Method
                 .DeclaringType
-                .GetCustomAttributes(typeof (ServiceRouteAttribute))
+                .GetCustomAttributes(typeof(ServiceRouteAttribute), true)
                 .ToList();
 
             if (!typeAttibutes.Any() || typeAttibutes.Count > 1)
@@ -61,7 +61,6 @@ namespace Rest.Proxy
             var request = invocation
                 .Arguments
                 .SingleOrDefault();
-
 
             var baseUrl = _settings.GetBaseUrl(serviceRoute.SettingBaseUrlName);
             var resourceUrl = methodRoute.Template;

@@ -97,6 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseAutoFakerTestFixture.cs" />
+    <Compile Include="ProxyInterceptorTests.cs" />
     <Compile Include="Support\Requests\DeleteRequest.cs" />
     <Compile Include="Support\ITest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -108,6 +109,8 @@
     <Compile Include="Support\Requests\PutRequest.cs" />
     <Compile Include="Support\Response\GetAllResponse.cs" />
     <Compile Include="Support\Response\GetSingleResponse.cs" />
+    <Compile Include="Support\Response\PostResponse.cs" />
+    <Compile Include="Support\Response\PutResponse.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

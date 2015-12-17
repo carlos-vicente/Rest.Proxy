@@ -205,22 +205,27 @@ namespace Rest.Proxy.UnitTests
             const string resourceUrl = "/resource/{Id}";
 
             var restClient = Fake.Resolve<IRestClient>();
-            var response = Fake.Resolve<IRestResponse>();
+            var restResponse = Fake.Resolve<IRestResponse>();
+            var fakeRequestFactoryFunc = A.Fake<Func<string, Method, IRestRequest>>();
+            var restRequest = Fake.Resolve<IRestRequest>();
             var request = Fixture.Create<Request>();
             var description = Fixture.Create<string>();
+            var expectedUrl = $"/resource/{request.Id}";
+
+            A.CallTo(() => fakeRequestFactoryFunc(expectedUrl, Method.GET))
+                .Returns(restRequest);
 
             A.CallTo(() => restClient
-                .Execute(A<IRestRequest>.That.Matches(rr =>
-                    rr.Method == Method.GET)))
-                .Returns(response);
+                .Execute(restRequest))
+                .Returns(restResponse);
 
-            A.CallTo(() => response.ErrorException)
+            A.CallTo(() => restResponse.ErrorException)
                 .Returns(null);
 
-            A.CallTo(() => response.StatusCode)
+            A.CallTo(() => restResponse.StatusCode)
                 .Returns(HttpStatusCode.BadRequest);
 
-            A.CallTo(() => response.StatusDescription)
+            A.CallTo(() => restResponse.StatusDescription)
                 .Returns(description);
 
             var sut = Fake.Resolve<RestProxy>();
@@ -248,21 +253,26 @@ namespace Rest.Proxy.UnitTests
             const string resourceUrl = "/resource/{Id}";
 
             var restClient = Fake.Resolve<IRestClient>();
-            var response = Fake.Resolve<IRestResponse>();
+            var restResponse = Fake.Resolve<IRestResponse>();
+            var fakeRequestFactoryFunc = A.Fake<Func<string, Method, IRestRequest>>();
+            var restRequest = Fake.Resolve<IRestRequest>();
             var request = Fixture.Create<Request>();
             var description = Fixture.Create<string>();
+            var expectedUrl = $"/resource/{request.Id}";
 
             var exception = new Exception("BOOM!!");
 
-            A.CallTo(() => restClient
-                .Execute(A<IRestRequest>.That.Matches(rr =>
-                    rr.Method == Method.GET)))
-                .Returns(response);
+            A.CallTo(() => fakeRequestFactoryFunc(expectedUrl, Method.GET))
+                .Returns(restRequest);
 
-            A.CallTo(() => response.ErrorException)
+            A.CallTo(() => restClient
+                .Execute(restRequest))
+                .Returns(restResponse);
+
+            A.CallTo(() => restResponse.ErrorException)
                 .Returns(exception);
 
-            A.CallTo(() => response.ErrorMessage)
+            A.CallTo(() => restResponse.ErrorMessage)
                 .Returns(description);
 
             var sut = Fake.Resolve<RestProxy>();
@@ -834,6 +844,210 @@ namespace Rest.Proxy.UnitTests
                 resourceUrl,
                 request,
                 typeof(Response));
+
+            // act/assert
+            var exceptionThrown = throwable
+                .ShouldThrow<HttpException>();
+
+            exceptionThrown
+                .And
+                .Message
+                .Should()
+                .Contain(description);
+
+            exceptionThrown
+                .And
+                .InnerException
+                .Should()
+                .Be(exception);
+        }
+
+        [Test]
+        public void Delete_UsesWithCorrectUrl_WhenSendsHttpGetRequest()
+        {
+            // arrange
+            const string baseUrl = "http://localhost";
+            const string resourceUrl = "/resource/{Id}";
+
+            var restClient = Fake.Resolve<IRestClient>();
+            var response = Fake.Resolve<IRestResponse>();
+            var fakeRequestFactoryFunc = A.Fake<Func<string, Method, IRestRequest>>();
+            var restRequest = Fake.Resolve<IRestRequest>();
+            var request = Fixture.Create<Request>();
+            var expectedUrl = $"/resource/{request.Id}";
+
+            A.CallTo(() => fakeRequestFactoryFunc(expectedUrl, Method.DELETE))
+                .Returns(restRequest);
+
+            A.CallTo(() => restClient
+                .Execute(restRequest))
+                .Returns(response);
+
+            A.CallTo(() => response.ErrorException)
+                .Returns(null);
+
+            A.CallTo(() => response.StatusCode)
+                .Returns(HttpStatusCode.OK);
+
+            var sut = Fake.Resolve<RestProxy>();
+
+            // act
+            sut.Delete(baseUrl, resourceUrl, request);
+
+            // assert
+            A.CallTo(() => restClient
+                .Execute(restRequest))
+                .MustHaveHappened(Repeated.Exactly.Once);
+
+            restClient
+                .BaseUrl
+                .Should()
+                .Be(baseUrl);
+        }
+
+        [Test]
+        public void Delete_ThrowsException_WhenBaseUrlIsNullOrWhitespace()
+        {
+            // arrange
+            var sut = Fake.Resolve<RestProxy>();
+
+            Action throwable = () => sut.Delete(
+                null,
+                Fixture.Create<string>(),
+                Fixture.Create<object>());
+
+            // act/assert
+            throwable
+                .ShouldThrow<ArgumentNullException>()
+                .And
+                .ParamName
+                .Should()
+                .Be("baseUrl");
+        }
+
+        [Test]
+        public void Delete_ThrowsException_WhenResourceUrlIsNullOrWhitespace()
+        {
+            // arrange
+            var sut = Fake.Resolve<RestProxy>();
+
+            Action throwable = () => sut.Delete(
+                Fixture.Create<string>(),
+                null,
+                Fixture.Create<object>());
+
+            // act/assert
+            throwable
+                .ShouldThrow<ArgumentNullException>()
+                .And
+                .ParamName
+                .Should()
+                .Be("resourceUrl");
+        }
+
+        [Test]
+        public void Delete_ThrowsException_WhenRequestIsNull()
+        {
+            // arrange
+            var sut = Fake.Resolve<RestProxy>();
+
+            Action throwable = () => sut.Delete(
+                Fixture.Create<string>(),
+                Fixture.Create<string>(),
+                null);
+
+            // act/assert
+            throwable
+                .ShouldThrow<ArgumentNullException>()
+                .And
+                .ParamName
+                .Should()
+                .Be("request");
+        }
+
+        [Test]
+        public void Delete_ThrowsException_WhenServerReturnsErrorHttpCode()
+        {
+            // arrange
+            const string baseUrl = "http://localhost";
+            const string resourceUrl = "/resource/{Id}";
+
+            var restClient = Fake.Resolve<IRestClient>();
+            var restResponse = Fake.Resolve<IRestResponse>();
+            var fakeRequestFactoryFunc = A.Fake<Func<string, Method, IRestRequest>>();
+            var restRequest = Fake.Resolve<IRestRequest>();
+            var request = Fixture.Create<Request>();
+            var description = Fixture.Create<string>();
+            var expectedUrl = $"/resource/{request.Id}";
+
+            A.CallTo(() => fakeRequestFactoryFunc(expectedUrl, Method.DELETE))
+                .Returns(restRequest);
+
+            A.CallTo(() => restClient
+                .Execute(restRequest))
+                .Returns(restResponse);
+
+            A.CallTo(() => restResponse.ErrorException)
+                .Returns(null);
+
+            A.CallTo(() => restResponse.StatusCode)
+                .Returns(HttpStatusCode.BadRequest);
+
+            A.CallTo(() => restResponse.StatusDescription)
+                .Returns(description);
+
+            var sut = Fake.Resolve<RestProxy>();
+
+            Action throwable = () => sut.Delete(
+                baseUrl,
+                resourceUrl,
+                request);
+
+            // act/assert
+            throwable
+                .ShouldThrow<HttpException>()
+                .And
+                .Message
+                .Should()
+                .Contain(description);
+        }
+
+        [Test]
+        public void Delete_ThrowsException_WhenHttpRequestFailsOverTCPErrors()
+        {
+            // arrange
+            const string baseUrl = "http://localhost";
+            const string resourceUrl = "/resource/{Id}";
+
+            var restClient = Fake.Resolve<IRestClient>();
+            var restResponse = Fake.Resolve<IRestResponse>();
+            var fakeRequestFactoryFunc = A.Fake<Func<string, Method, IRestRequest>>();
+            var restRequest = Fake.Resolve<IRestRequest>();
+            var request = Fixture.Create<Request>();
+            var description = Fixture.Create<string>();
+            var expectedUrl = $"/resource/{request.Id}";
+
+            var exception = new Exception("BOOM!!");
+
+            A.CallTo(() => fakeRequestFactoryFunc(expectedUrl, Method.DELETE))
+                .Returns(restRequest);
+
+            A.CallTo(() => restClient
+                .Execute(restRequest))
+                .Returns(restResponse);
+
+            A.CallTo(() => restResponse.ErrorException)
+                .Returns(exception);
+
+            A.CallTo(() => restResponse.ErrorMessage)
+                .Returns(description);
+
+            var sut = Fake.Resolve<RestProxy>();
+
+            Action throwable = () => sut.Delete(
+                baseUrl,
+                resourceUrl,
+                request);
 
             // act/assert
             var exceptionThrown = throwable

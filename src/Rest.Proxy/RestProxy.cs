@@ -100,7 +100,23 @@ namespace Rest.Proxy
 
         public void Delete(string baseUrl, string resourceUrl, object request)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(baseUrl))
+                throw new ArgumentNullException(nameof(baseUrl));
+
+            if (string.IsNullOrWhiteSpace(resourceUrl))
+                throw new ArgumentNullException(nameof(resourceUrl));
+
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
+            // replace everything in URL template
+            _restClient.BaseUrl = new Uri(baseUrl);
+
+            // create a request for the URL
+            var restRequest = GetRestRequest(resourceUrl, request, Method.DELETE);
+
+            // execute the request
+            ExecuteRequestAndValidateResponse(restRequest);
         }
 
         private object ExecuteRequestWithoutBody(
