@@ -78,33 +78,7 @@ namespace Client
 
             var container = containerBuilder.Build();
 
-            //ISettings settings = new AppSettings();
-
-            //Func<string, Method, IRestRequest> restRequestBuilderFunc =
-            //    (resourceUrl, method) =>
-            //        new RestRequest(resourceUrl, method);
-
-            //Func<IRestProxy, IPortOrderService> portOrderServiceProxy = p =>
-            //{
-            //    var gen = new ProxyGenerator();
-            //    var interceptor = new ProxyInterceptor(p, settings);
-            //    return gen.CreateInterfaceProxyWithoutTarget<IPortOrderService>(interceptor);
-            //};
-
-            //IRestClient client = new RestClient();
-            //ISerializer serializer = new JsonSerializer(Options.ISO8601IncludeInherited);
-
-            //IRestProxy proxy = new RestProxy(
-            //    client,
-            //    serializer,
-            //    restRequestBuilderFunc);
-
-            //IProxyFactory<IPortOrderService> proxyFactory = new ProxyFactory<IPortOrderService>(
-            //    proxy,
-            //    portOrderServiceProxy);
-
-            //var serviceProxy = proxyFactory.CreateProxy();
-
+            // Testing
             var serviceProxy = container.Resolve<IPortOrderService>();
 
             var getAllResponse = serviceProxy.GetAll(new GetAllRequest());
