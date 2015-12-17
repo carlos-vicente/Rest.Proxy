@@ -4,7 +4,7 @@ using Nancy.Responses.Negotiation;
 using Server.Contracts;
 using Server.Contracts.Requests;
 
-namespace Server.Modules
+namespace Server.Nancy.Modules
 {
     public class PortOrderModule : NancyModule
     {
@@ -16,7 +16,10 @@ namespace Server.Modules
 
             Get["/portOrders"] = GetAllPortOrders;
             Get["/portOrder/{Id}"] = GetPortOrderById;
+
             Post["/portOrders"] = PostPortOrder;
+
+            Put["/portOrder/{Id}"] = PutPortOrder;
         }
 
         private dynamic GetAllPortOrders(dynamic parameters)
@@ -45,9 +48,24 @@ namespace Server.Modules
 
         private dynamic PostPortOrder(dynamic parameters)
         {
-            var request = this.Bind<CreateNewPortOrderRequest>();
+            var request = this.Bind<CreateNewPortOrderRequest>(new BindingConfig
+            {
+                BodyOnly = true
+            });
 
-            _service.CreateNewPortOrder(request);
+            var response = _service.CreateNewPortOrder(request);
+
+            return Negotiate
+                .WithStatusCode(HttpStatusCode.OK)
+                .WithModel(response)
+                .WithAllowedMediaRange(new MediaRange("application/json"));
+        }
+
+        private dynamic PutPortOrder(dynamic parameters)
+        {
+            var request = this.Bind<SchedulePortOrderRequest>();
+
+            _service.SchedulePortOrder(request);
 
             return Negotiate
                 .WithStatusCode(HttpStatusCode.OK);

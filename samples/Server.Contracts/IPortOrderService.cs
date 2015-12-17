@@ -15,6 +15,9 @@ namespace Server.Contracts
         GetByIdResponse GetById(GetByIdRequest request);
 
         [MethodRoute(Method = HttpMethod.Post, Template = "/portOrders")]
-        void CreateNewPortOrder(CreateNewPortOrderRequest request);
+        CreateNewPortOrderResponse CreateNewPortOrder(CreateNewPortOrderRequest request);
+
+        [MethodRoute(Method = HttpMethod.Put, Template = "/portOrder/{Id}/")]
+        void SchedulePortOrder(SchedulePortOrderRequest request);
     }
 }

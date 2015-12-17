@@ -1,5 +1,8 @@
 ﻿using System;
+using Autofac;
+using Castle.Core.Interceptor;
 using Castle.DynamicProxy;
+using CV.Common.Serialization;
 using CV.Common.Serialization.Json;
 using Jil;
 using Rest.Proxy;
@@ -14,27 +17,95 @@ namespace Client
     {
         public static void Main(string[] args)
         {
-            Func<string, Method, IRestRequest> restRequestBuilderFunc =
-                (resourceUrl, method) =>
-                    new RestRequest(resourceUrl, method);
+            var containerBuilder = new ContainerBuilder();
 
-            Func<IRestProxy, IPortOrderService> portOrderServiceProxy = p =>
-            {
-                var gen = new ProxyGenerator();
-                var interceptor = new ProxyInterceptor(p, new AppSettings());
-                return gen.CreateInterfaceProxyWithoutTarget<IPortOrderService>(interceptor);
-            };
+            containerBuilder
+                .RegisterType<AppSettings>()
+                .As<ISettings>()
+                .InstancePerLifetimeScope();
 
-            IRestProxy proxy = new RestProxy(
-                new RestClient(),
-                new JsonSerializer(Options.ISO8601IncludeInherited),
-                restRequestBuilderFunc);
+            containerBuilder
+                .RegisterType<ProxyInterceptor>()
+                .As<IInterceptor>()
+                .InstancePerLifetimeScope();
 
-            IProxyFactory<IPortOrderService> proxyFactory = new ProxyFactory<IPortOrderService>(
-                proxy,
-                portOrderServiceProxy);
+            containerBuilder
+                .Register<Func<string, Method, IRestRequest>>(ctx =>
+                {
+                    return (resourceUrl, method) => new RestRequest(resourceUrl, method);
+                });
 
-            var serviceProxy = proxyFactory.CreateProxy();
+            containerBuilder
+                .Register<Func<IRestProxy, IPortOrderService>>(ctx =>
+                {
+                    return p =>
+                    {
+                        var gen = new ProxyGenerator();
+                        var interceptor = ctx
+                            .Resolve<IInterceptor>(
+                                new TypedParameter(typeof (IRestProxy), p));
+                        return gen
+                            .CreateInterfaceProxyWithoutTarget<IPortOrderService>(interceptor);
+                    };
+                });
+
+            containerBuilder
+                .RegisterType<RestClient>()
+                .As<IRestClient>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder
+                .Register(ctx => new JsonSerializer(Options.ISO8601IncludeInherited))
+                .As<ISerializer>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder
+                .RegisterType<RestProxy>()
+                .As<IRestProxy>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder
+                .RegisterType<ProxyFactory<IPortOrderService>>()
+                .As<IProxyFactory<IPortOrderService>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder
+                .Register(ctx => ctx
+                    .Resolve<IProxyFactory<IPortOrderService>>()
+                    .CreateProxy())
+                .As<IPortOrderService>()
+                .InstancePerLifetimeScope();
+
+            var container = containerBuilder.Build();
+
+            //ISettings settings = new AppSettings();
+
+            //Func<string, Method, IRestRequest> restRequestBuilderFunc =
+            //    (resourceUrl, method) =>
+            //        new RestRequest(resourceUrl, method);
+
+            //Func<IRestProxy, IPortOrderService> portOrderServiceProxy = p =>
+            //{
+            //    var gen = new ProxyGenerator();
+            //    var interceptor = new ProxyInterceptor(p, settings);
+            //    return gen.CreateInterfaceProxyWithoutTarget<IPortOrderService>(interceptor);
+            //};
+
+            //IRestClient client = new RestClient();
+            //ISerializer serializer = new JsonSerializer(Options.ISO8601IncludeInherited);
+
+            //IRestProxy proxy = new RestProxy(
+            //    client,
+            //    serializer,
+            //    restRequestBuilderFunc);
+
+            //IProxyFactory<IPortOrderService> proxyFactory = new ProxyFactory<IPortOrderService>(
+            //    proxy,
+            //    portOrderServiceProxy);
+
+            //var serviceProxy = proxyFactory.CreateProxy();
+
+            var serviceProxy = container.Resolve<IPortOrderService>();
 
             var getAllResponse = serviceProxy.GetAll(new GetAllRequest());
 
@@ -49,10 +120,27 @@ namespace Client
             Console.WriteLine("GetByIdRequest");
             Console.WriteLine(JSON.Serialize(getByIdResponse));
 
-            serviceProxy.CreateNewPortOrder(new CreateNewPortOrderRequest
+            var createNewPortResponse = serviceProxy.CreateNewPortOrder(new CreateNewPortOrderRequest
             {
                 Msisdn = "0035198789654"
             });
+
+            Console.WriteLine("CreateNewPortOrder");
+            Console.WriteLine(JSON.Serialize(createNewPortResponse));
+
+            serviceProxy.SchedulePortOrder(new SchedulePortOrderRequest
+            {
+                Id = "23",
+                ToDate = DateTime.Today.AddDays(2),
+                DonorNetworkOperator = "Vodafone",
+                RecipientNetworkOperator = "Meo"
+            });
+
+            Console.WriteLine("SchedulePortOrder");
+            Console.WriteLine("No response");
+
+
+            Console.ReadKey();
         }
     }
 }

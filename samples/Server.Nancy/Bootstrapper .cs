@@ -1,9 +1,9 @@
 ﻿using Autofac;
 using Nancy.Bootstrappers.Autofac;
 using Server.Contracts;
-using Server.Services;
+using Server.Nancy.Services;
 
-namespace Server
+namespace Server.Nancy
 {
     public class Bootstrapper : AutofacNancyBootstrapper
     {

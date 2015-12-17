@@ -3,7 +3,7 @@ using Server.Contracts;
 using Server.Contracts.Requests;
 using Server.Contracts.Responses;
 
-namespace Server.Services
+namespace Server.Nancy.Services
 {
     public class PortOrderService : IPortOrderService
     {
@@ -28,9 +28,19 @@ namespace Server.Services
             };
         }
 
-        public void CreateNewPortOrder(CreateNewPortOrderRequest request)
+        public CreateNewPortOrderResponse CreateNewPortOrder(CreateNewPortOrderRequest request)
         {
-            
+            return new CreateNewPortOrderResponse
+            {
+                Id = request
+                    .Msisdn
+                    .Substring(request.Msisdn.Length - 3, 2)
+            };
+        }
+
+        public void SchedulePortOrder(SchedulePortOrderRequest request)
+        {
+            // do something
         }
     }
 }

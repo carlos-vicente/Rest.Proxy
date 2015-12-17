@@ -43,6 +43,8 @@
     <Compile Include="Requests\CreateNewPortOrderRequest.cs" />
     <Compile Include="Requests\GetAllRequest.cs" />
     <Compile Include="Requests\GetByIdRequest.cs" />
+    <Compile Include="Requests\SchedulePortOrderRequest.cs" />
+    <Compile Include="Responses\CreateNewPortOrderResponse.cs" />
     <Compile Include="Responses\GetAllResponse.cs" />
     <Compile Include="Responses\GetByIdResponse.cs" />
     <Compile Include="IPortOrderService.cs" />

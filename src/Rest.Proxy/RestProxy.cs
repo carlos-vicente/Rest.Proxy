@@ -46,21 +46,15 @@ namespace Rest.Proxy
             if (responseType == null)
                 throw new ArgumentNullException(nameof(responseType));
 
-            // replace everything in URL template
-            _restClient.BaseUrl = new Uri(baseUrl);
-
-            // create a request for the URL
-            var restRequest = GetRestRequest(resourceUrl, request, Method.GET);
-
-            // execute the request
-            var response = _restClient.Execute(restRequest);
-            ValidateResponse(response);
-
-            // deserialize the response body to return
-            return _serializer.Deserialize(responseType, response.Content);
+            return ExecuteRequestWithoutBody(
+                baseUrl,
+                resourceUrl,
+                request,
+                responseType,
+                Method.GET);
         }
 
-        public void Post(string baseUrl, string resourceUrl, object request)
+        public object Post(string baseUrl, string resourceUrl, object request, Type responseType)
         {
             if (string.IsNullOrWhiteSpace(baseUrl))
                 throw new ArgumentNullException(nameof(baseUrl));
@@ -71,27 +65,86 @@ namespace Rest.Proxy
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
-            // replace everything in URL template
-            _restClient.BaseUrl = new Uri(baseUrl);
+            if (responseType == null)
+                throw new ArgumentNullException(nameof(responseType));
 
-            // create a request for the URL
-            var restRequest = GetRestRequest(resourceUrl, request, Method.POST);
-            var serializedRequest = _serializer.Serialize(request);
-            restRequest.AddBody(serializedRequest);
-
-            // execute the request
-            var response = _restClient.Execute(restRequest);
-            ValidateResponse(response);
+            return ExecuteRequestWithBody(
+                baseUrl,
+                resourceUrl,
+                request,
+                responseType,
+                Method.POST);
         }
 
-        public void Put(string baseUrl, string resourceUrl, object request)
+        public object Put(string baseUrl, string resourceUrl, object request, Type responseType)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(baseUrl))
+                throw new ArgumentNullException(nameof(baseUrl));
+
+            if (string.IsNullOrWhiteSpace(resourceUrl))
+                throw new ArgumentNullException(nameof(resourceUrl));
+
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
+            if (responseType == null)
+                throw new ArgumentNullException(nameof(responseType));
+
+            return ExecuteRequestWithBody(
+                baseUrl,
+                resourceUrl,
+                request,
+                responseType,
+                Method.PUT);
         }
 
         public void Delete(string baseUrl, string resourceUrl, object request)
         {
             throw new NotImplementedException();
+        }
+
+        private object ExecuteRequestWithoutBody(
+            string baseUrl,
+            string resourceUrl,
+            object request,
+            Type responseType,
+            Method method)
+        {
+            // replace everything in URL template
+            _restClient.BaseUrl = new Uri(baseUrl);
+
+            // create a request for the URL
+            var restRequest = GetRestRequest(resourceUrl, request, method);
+
+            // execute the request
+            var response = ExecuteRequestAndValidateResponse(restRequest);
+
+            // deserialize the response body to return
+            return responseType == typeof(void)
+                ? null
+                : _serializer.Deserialize(responseType, response.Content);
+        }
+
+        private object ExecuteRequestWithBody(
+            string baseUrl,
+            string resourceUrl,
+            object request,
+            Type responseType,
+            Method method)
+        {
+            // replace everything in URL template
+            _restClient.BaseUrl = new Uri(baseUrl);
+
+            // create a request for the URL
+            var restRequest = GetRestRequestWithBody(resourceUrl, request, method);
+
+            // execute the request
+            var response = ExecuteRequestAndValidateResponse(restRequest);
+
+            // deserialize the response body to return (if there is return)
+            return responseType == typeof (void)
+                ? null
+                : _serializer.Deserialize(responseType, response.Content);
         }
 
         private IRestRequest GetRestRequest(string resourceUrl, object request, Method method)
@@ -107,6 +160,15 @@ namespace Rest.Proxy
                         .Replace($"{{{segment.Name}}}", segment.Value));
 
             return _requestFactoryFunc(finalResourceUrl, method);
+        }
+
+        private IRestRequest GetRestRequestWithBody(string resourceUrl, object request, Method method)
+        {
+            var restRequest = GetRestRequest(resourceUrl, request, method);
+
+            restRequest.AddJsonBody(request);
+
+            return restRequest;
         }
 
         private static IEnumerable<UrlSegment> ExtractSegments(string resourceUrl, object request)
@@ -157,20 +219,24 @@ namespace Rest.Proxy
             return property?.GetValue(request)?.ToString();
         }
 
-        private static void ValidateResponse(IRestResponse response)
+        private IRestResponse ExecuteRequestAndValidateResponse(IRestRequest restRequest)
         {
-            if (response.ErrorException != null)
+            var restResponse = _restClient.Execute(restRequest);
+
+            if (restResponse.ErrorException != null)
             {
                 throw new HttpException(
-                    $"Server returned error: {response.ErrorMessage}",
-                    response.ErrorException);
+                    $"Server returned error: {restResponse.ErrorMessage}",
+                    restResponse.ErrorException);
             }
 
             // TODO: just OK or all the 2xx family????
-            if (response.StatusCode != HttpStatusCode.OK)
+            if (restResponse.StatusCode != HttpStatusCode.OK)
             {
-                throw new HttpException($"Server returned error: {response.StatusDescription}");
+                throw new HttpException($"Server returned error: {restResponse.StatusDescription}");
             }
+
+            return restResponse;
         }
     }
 }

@@ -74,13 +74,13 @@ namespace Rest.Proxy
                     break;
 
                 case HttpMethod.Post:
-                    _restProxy
-                        .Post(baseUrl, resourceUrl, request);
+                    invocation.ReturnValue = _restProxy
+                        .Post(baseUrl, resourceUrl, request, invocation.Method.ReturnType);
                     break;
 
                 case HttpMethod.Put:
-                    _restProxy
-                        .Put(baseUrl, resourceUrl, request);
+                    invocation.ReturnValue = _restProxy
+                        .Put(baseUrl, resourceUrl, request, invocation.Method.ReturnType);
                     break;
 
                 case HttpMethod.Delete:

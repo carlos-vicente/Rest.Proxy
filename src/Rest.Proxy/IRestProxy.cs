@@ -6,9 +6,9 @@ namespace Rest.Proxy
     {
         object Get(string baseUrl, string resourceUrl, object request, Type responseType);
 
-        void Post(string baseUrl, string resourceUrl, object request);
+        object Post(string baseUrl, string resourceUrl, object request, Type responseType);
 
-        void Put(string baseUrl, string resourceUrl, object request);
+        object Put(string baseUrl, string resourceUrl, object request, Type responseType);
 
         void Delete(string baseUrl, string resourceUrl, object request);
     }
